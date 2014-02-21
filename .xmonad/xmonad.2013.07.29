@@ -1,0 +1,180 @@
+--
+-- xmonad editor Wentura
+--
+--
+
+import XMonad
+import Data.Monoid
+import System.Exit
+import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.DynamicLog  --dzen2 and xmobar
+import XMonad.Hooks.UrgencyHook
+--import XMonad.Hooks.EwmhDesktops
+import XMonad.Hooks.SetWMName
+import XMonad.Util.EZConfig     --Easy KeyBinding
+import XMonad.Layout.SimpleFloat
+import XMonad.Layout.PerWorkspace
+import XMonad.Layout.Circle
+import XMonad.Layout.NoBorders
+import XMonad.Layout.IM
+import XMonad.Layout.Grid
+import XMonad.Layout.Master
+-- Dmenu
+--import Data.Maybe
+--import Control.Monad.State
+--import qualified StackSet as W
+
+import XMonad.Layout.Tabbed       --ICQ
+--import XMonad.Layout.PerWorkspace
+--import XMonad.Actions.Volume
+import Graphics.X11.ExtraTypes.XF86
+import qualified XMonad.StackSet as W
+import qualified Data.Map        as M
+
+
+myTerminal      = "urxvt"
+myFocusFollowsMouse :: Bool
+myFocusFollowsMouse = True
+myBorderWidth   = 1
+myModMask       = mod4Mask
+--myNumlockMask   = mod2Mask
+myWorkspaces    = ["1:TERM", "2:REMMINA", "3:WEB", "4:ARCSIGHT", "5:EDIT", "6:NEWS", "7:IM", "8:MAIL", "9:MEDIA"] 
+myNormalBorderColor  = "#dddddd"
+myFocusedBorderColor = "orange"
+
+myKeys = \conf -> mkKeymap conf $
+           [  ("M-<Return>",   spawn $ (XMonad.terminal conf))
+            , ("M-p",          spawn "exe=`dmenu_path | dmenu` && eval \"exec $exe\"")
+            , ("M-S-p",        spawn "gmrun")
+            , ("M-S-l",        spawn "slock")
+--            , ("M-<Space>", setLayout $ XMonad.layoutHook conf)
+            , ("M-<Space>",    sendMessage NextLayout)
+            , ("M-<Tab>",      windows W.focusDown)
+            , ("M-S-<Tab>",    windows W.focusUp)
+            , ("M-m",          windows W.focusMaster  )
+            , ("M-S-<Return>", windows W.swapMaster)
+            , ("M-b",          sendMessage ToggleStruts)
+            , ("M-h",          sendMessage Shrink)
+            , ("M-l",          sendMessage Expand)
+--            , ("M-n",          refresh)
+            , ("M-S-c",        kill)
+            , ("M-q",          broadcastMessage ReleaseResources >> restart "xmonad" True)
+            , ("M-S-q",        io (exitWith ExitSuccess))
+            , ("M-<F10>",      broadcastMessage ReleaseResources >> restart "xmonad" True)
+            , ("M-S-<F10>",    io (exitWith ExitSuccess))
+            , ("M-t",          withFocused $ windows . W.sink)
+            , ("M-j",          windows W.swapDown  )
+            , ("M-S-k",        windows W.swapUp    )
+            , ("M-<F1>",       spawn $ (XMonad.terminal conf))
+            , ("M-<F2>",       spawn "geany")
+--            , ("M-<F3>",       spawn "all_proxy=http://89.1.1.8:3128/ chromium")
+            , ("M-<F3>",       spawn "chromium-browser")
+--            , ("M-<F3>",            spawn "uzbl-tabbed")
+--            , ("M-S-<F3>",          spawn "all_proxy=http://89.1.1.8:3128/ google-chrome")
+            , ("M-<F4>",       spawn "~/bin/arcsight.sh")
+            , ("M-<F5>",       spawn "remmina")
+            , ("M-<F6>",       spawn "liferea")
+            , ("M-<F7>",       spawn "empathy")
+            , ("M-<F8>",       spawn "evolution")
+--            , ("M-comma",       sendMessage (IncMasterN 1))
+--            , ("M-period",      sendMessage (IncMasterN (-1)))
+--            , ("M-x",          shellPrompt defaultXPConfig)]
+--            , ("M-S-t",         spawn "gnome-terminal")
+            ]
+    ++ mediaKeys ++
+    [ (otherModMasks ++ "M-" ++ [key], action tag)
+         | (tag, key)  <- zip myWorkspaces "123456789"
+         , (otherModMasks, action) <- [ ("", windows . W.view) -- was W.greedyView
+                                      , ("S-", windows . W.shift)]
+    ]
+
+mediaKeys = [ 
+	  ("<XF86AudioPlay>",      spawn "mpc play")
+    , ("<XF86AudioPause>",     spawn "mpc pause")
+    , ("<XF86AudioNext>",      spawn "mpc next")
+    , ("<XF86AudioPrev>",      spawn "mpc prev")
+--    , ("<XF86AudioRaiseVolume>",    spawn "amixer -q set Master 2+")
+    , ("<XF86AudioRaiseVolume>",    spawn "volume 5%+")
+    , ("<XF86AudioMute>",      spawn "amixer -q set Master toggle")
+--    , ("<XF86AudioRaiseVolume>",  lowerVolume 3)
+--    , ("<XF86AudioLowerVolume>",    spawn "amixer -q set Master 2-")
+    , ("<XF86AudioLowerVolume>",    spawn "volume 5%-")
+    , ("<Print>",              spawn "scrot")
+    ]
+
+myMouseBindings (XConfig {XMonad.modMask = modm}) = M.fromList $
+    [ ((modm, button1), (\w -> focus w >> mouseMoveWindow w
+                                       >> windows W.shiftMaster))
+    , ((modm, button2), (\w -> focus w >> windows W.shiftMaster))
+    , ((modm, button3), (\w -> focus w >> mouseResizeWindow w
+                                       >> windows W.shiftMaster))
+    ]
+
+--myLayout = tiled ||| Mirror tiled ||| Full
+defaultLayouts = Full ||| tiled ||| Mirror tiled ||| simpleFloat ||| Circle
+  where
+     tiled   = Tall nmaster delta ratio
+     nmaster = 1
+     ratio   = 1/2
+     delta   = 3/100
+imLayout = mastergrid
+--imLayout =  simpleTabbed
+
+mastergrid = mastered (1/100) (1/7) $ Grid
+
+myLayout = onWorkspace "7:IM" imLayout $ defaultLayouts
+------------------------------------------------------------------------
+-- > xprop | grep WM_CLASS
+-- To match on the WM_NAME, you can use 'title' in the same way that
+-- 'className' and 'resource' are used below.
+myManageHook = composeAll . concat $
+    [
+      [ className =? c --> doF (W.shift "1:TERM")       | c <- myClassTermShifts ]
+    , [ className =? c --> doF (W.shift "2:REMMINA")    | c <- myClassRdpShifts ]
+    , [ className =? c --> doF (W.shift "3:WEB")        | c <- myClassWebShifts ]
+    , [ className =? c --> doF (W.shift "4:ARCSIGHT")   | c <- myClassArcsightShifts ]
+    , [ className =? c --> doF (W.shift "5:EDIT")       | c <- myClassCodeShifts ]
+    , [ className =? c --> doF (W.shift "6:NEWS")       | c <- myClassNewsShifts ]
+    , [ className =? c --> doF (W.shift "7:IM")         | c <- myClassIMShifts ]
+    , [ className =? c --> doF (W.shift "8:MAIL")       | c <- myClassMailShifts ]
+    , [ className =? c --> doF (W.shift "9:MEDIA")      | c <- myClassMediaShifts ]
+    , [ className =? a --> doIgnore                     | a <- myClassIgnoreShifts ]
+    , [ className =? b --> doFloat                      | b <- myClassFloats]
+    ]
+        where
+                myClassTermShifts       = ["URxvt", "gnome-terminal"]
+                myClassCodeShifts       = ["Scribes", "Scite", "Geany", "Evince", "Emacs"]
+                myClassWebShifts        = ["Chrome", "Filezilla", "Google-chrome","Chromium-browser", "Chromium", "Uzbl-tabbed"]
+                myClassArcsightShifts   = ["java", "com-arcsight-ui-ASWorkBench"]
+                myClassRdpShifts        = ["remmina"]
+                myClassNewsShifts       = ["Liferea"]
+                myClassIMShifts         = ["Pidgin","Skype.bin", "Empathy"]
+                myClassMailShifts       = ["Evolution"]
+                myClassMediaShifts      = ["Deadbeef", "Totem"]
+                myClassIgnoreShifts     = ["XXKb", "stalonetray"]
+                myClassFloats           = ["Gnome-mplayer", "MPlayer", "Deadbeef", "Totem"]
+myEventHook = mempty
+myLogHook = return ()
+myStartupHook =  setWMName "LG3D" --return ()
+main = xmonad =<< xmobar defaults
+defaults = defaultConfig {
+        terminal           = myTerminal,
+        focusFollowsMouse  = myFocusFollowsMouse,
+        borderWidth        = myBorderWidth,
+        modMask            = myModMask,
+--        numlockMask        = myNumlockMask,
+        workspaces         = myWorkspaces,
+        normalBorderColor  = myNormalBorderColor,
+        focusedBorderColor = myFocusedBorderColor,
+
+      -- key bindings
+        keys               = myKeys,
+        mouseBindings      = myMouseBindings,
+
+      -- hooks, layouts
+        layoutHook         = smartBorders $ avoidStruts myLayout,
+        manageHook         = myManageHook <+> manageDocks,
+        handleEventHook    = myEventHook,
+        logHook            = myLogHook,
+        startupHook        = myStartupHook
+    }

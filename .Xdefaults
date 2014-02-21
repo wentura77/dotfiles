@@ -1,0 +1,44 @@
+
+URxvt.buffered:			true
+URxvt.background:		black
+URxvt.foreground:		white
+
+Xft.dpi:            96
+
+sXTerm*background:	black
+XTerm*foreground:	white
+XTerm*faceName:		Terminus
+XTerm*faceSize:		12
+
+URxvt*background: white
+URxvt*foreground: black
+URxvt*transparent: false
+!URxvt*backgroundPixmap:  /home/wentura/Картинки/Фон/simplyx.03.png
+URxvt*color4: #0000FF
+URxvt*color2: #008200
+URxvt*color10: #0C9400
+URxvt*color12: #0000FF
+URxvt*color6: #00DBDB
+!URxvt.colorBD: #CC5533
+!URxvt.colorUL: #88AA22
+URxvt.underlineColor: #222222
+!URxvt*font: xft:Droid Sans Mono-10:autohint=true:antialias=true
+URxvt*scrollBar: False
+URxvt*saveLines: 5000
+URxvt.perl-ext-common: default,matcher
+! ,digital-clock,readline,searchable-scrollback,selection,tabbed
+!URxvt.tabbed.tabbar-fg: 2
+!URxvt.tabbed.tabbar-bg: 0
+!URxvt.tabbed.tab-fg:    11
+!URxvt.tabbed.tab-bg:    0
+URxvt.urlLauncher:	conkeror
+URxvt.matcher.button:	1
+
+yeahconsole*term: urxvt
+yeahconsole*consoleHeight: 30
+yeahconsole*toggleKey: None+F12
+yeahconsole*aniDelay: 1
+yeahconsole*stepSize: 0
+yeahconsole*restart:1
+
+Tkabber*font: DroidSans 10
